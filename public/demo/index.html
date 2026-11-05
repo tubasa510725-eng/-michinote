@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ミチノート 試作</title>
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{box-sizing:border-box}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Klee+One:wght@600&display=swap">
+<style>
+/* Layout: phone-shaped app (map on top, working panel below, tab bar) with a concept column beside it on wide screens */
+:root{
+  --bg:#ece9dc; --paper:#fbfaf4; --card:#ffffff; --ink:#1d2a21; --muted:#5d6a5f; --line:#dcd8c6;
+  --brand:#1f4a32; --brand-ink:#f4f1e6; --road:#2c8a3c; --orange:#df6c1c; --orange-soft:#fbe6d4;
+  --land:#f8f6ec; --land-navi:#e4efd8; --sea:#cde2e3; --lake:#cfe3e6; --faint:#cfcab4; --border-line:#e3dfcc;
+  --hwy:#4a7fc9; --nat:#f2c14e; --chip:#eef0e4; --shadow:0 18px 50px rgba(31,74,50,.18);
+  --f-display:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --f-hand:"Klee One","Hiragino Mincho ProN","Yu Mincho",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1511; --paper:#161e18; --card:#1c261f; --ink:#e7eadf; --muted:#9ba696; --line:#2e3a31;
+  --brand:#1d3f2b; --brand-ink:#eef0e4; --road:#5cc46b; --orange:#f08a3a; --orange-soft:#3a2617;
+  --land:#1a221c; --land-navi:#1f2c21; --sea:#132a32; --lake:#163038; --faint:#38433a; --border-line:#26302a;
+  --hwy:#6d9be0; --nat:#c9a246; --chip:#232e26; --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1511; --paper:#161e18; --card:#1c261f; --ink:#e7eadf; --muted:#9ba696; --line:#2e3a31;
+  --brand:#1d3f2b; --brand-ink:#eef0e4; --road:#5cc46b; --orange:#f08a3a; --orange-soft:#3a2617;
+  --land:#1a221c; --land-navi:#1f2c21; --sea:#132a32; --lake:#163038; --faint:#38433a; --border-line:#26302a;
+  --hwy:#6d9be0; --nat:#c9a246; --chip:#232e26; --shadow:0 18px 50px rgba(0,0,0,.5); color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.6}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+
+.stage{height:100%;display:flex;justify-content:center;align-items:center;gap:48px;padding-block:24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.concept{max-width:340px;display:flex;flex-direction:column;gap:18px}
+.concept .logo{font-size:22px}
+.concept h1{font-family:var(--f-display);font-weight:900;font-size:34px;line-height:1.25;margin:0;text-wrap:balance}
+.concept h1 em{font-style:normal;color:var(--orange)}
+.concept p{margin:0;color:var(--muted)}
+.concept ol{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.concept .scope{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.concept .scope b{color:var(--brand)}
+:root[data-theme="dark"] .concept .scope b{color:var(--road)}
+.tag{display:inline-block;font-size:11px;letter-spacing:.06em;padding:2px 8px;border-radius:99px;background:var(--orange);color:#fff;font-weight:700}
+
+.app{width:min(420px,100%);height:min(860px,100%);background:var(--paper);border-radius:34px;box-shadow:var(--shadow);
+  border:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;position:relative}
+@media (max-width:860px){
+  .concept{display:none}
+  .stage{padding:0}
+  .app{width:100%;height:100%;border-radius:0;border:0;box-shadow:none}
+}
+
+header.top{background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--f-display);font-weight:900;font-size:18px;letter-spacing:.04em}
+.logo svg{flex:none}
+.modes{display:flex;background:rgba(255,255,255,.12);border-radius:99px;padding:3px}
+.modes button{border:0;background:none;color:inherit;padding:5px 11px;border-radius:99px;font-size:12px;font-weight:700;display:flex;gap:4px;align-items:center}
+.modes button[aria-pressed="true"]{background:var(--paper);color:var(--brand)}
+:root[data-theme="dark"] .modes button[aria-pressed="true"]{color:var(--road)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .modes button[aria-pressed="true"]{color:var(--road)}}
+
+.mapwrap{position:relative;flex:0 0 44%;background:var(--land);border-bottom:1px solid var(--line);overflow:hidden}
+.mapwrap svg{width:100%;height:100%;display:block;touch-action:manipulation}
+.mapcap{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.mapcap span{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.mapcap .rec{background:#c2361b;color:#fff;border-color:#c2361b}
+.legend{position:absolute;right:10px;bottom:10px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:11px;display:flex;flex-direction:column;gap:2px}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+.panel{flex:1;overflow-y:auto;padding-block:16px 24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+.panel h2{font-family:var(--f-display);font-weight:900;font-size:20px;margin:0;line-height:1.3;text-wrap:balance}
+.panel h2 u{text-decoration:none;background:linear-gradient(transparent 70%,var(--orange-soft) 70%)}
+.panel h3{font-size:14px;margin:0;font-weight:700}
+.lead{margin:0;color:var(--muted);font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:2px}
+.stat small{font-size:11px;color:var(--muted);letter-spacing:.04em}
+.stat b{font-size:20px;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat b span{font-size:12px;font-weight:500;margin-left:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 14px;font-weight:700;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+.btn.primary{background:var(--orange);border-color:var(--orange);color:#fff}
+.btn.brand{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.block{width:100%}
+.btn.small{padding:6px 10px;font-size:12px;border-radius:10px}
+.btn.danger{color:#c2361b}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.note{display:flex;gap:8px;font-size:12px;color:var(--muted);background:var(--chip);border-radius:10px;padding:8px 10px;align-items:flex-start}
+.note svg{flex:none;margin-top:2px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--chip);color:var(--muted)}
+.chip.sample{background:var(--orange-soft);color:var(--orange)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:700}
+.chips button[aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.howto{display:flex;flex-direction:column;gap:10px}
+.howto div{display:flex;gap:10px;align-items:flex-start}
+.howto .ic{flex:none;width:34px;height:34px;border-radius:10px;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center}
+.howto p{margin:0;font-size:13px}
+.howto p b{display:block;font-size:14px}
+
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;font-weight:700;color:var(--muted)}
+.field select,.field input,.field textarea{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 10px;width:100%}
+.field textarea{min-height:64px;resize:vertical}
+.form{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.cand{background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;text-align:left;width:100%}
+.cand[aria-pressed="true"]{border-color:var(--orange);box-shadow:0 0 0 3px var(--orange-soft)}
+.cand .t{font-weight:900;font-size:15px;display:flex;justify-content:space-between;gap:8px}
+.cand .meta{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:12px}
+.cand .meta b{display:block;font-size:14px;font-variant-numeric:tabular-nums}
+.cand .why{background:var(--chip);border-radius:10px;padding:8px 10px;font-size:12px}
+.cand .why b{color:var(--orange)}
+
+.reclive{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.reclive .now{font-size:12px;color:var(--muted)}
+.reclive .now b{display:block;font-size:20px;color:var(--ink);font-family:var(--f-display);font-weight:900}
+.nexts{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:#c2361b;display:inline-block;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+.ride{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;text-align:left;width:100%;align-items:center}
+.ride .thumb{flex:none;width:72px;height:72px;border-radius:12px;overflow:hidden;background:var(--land)}
+.ride .thumb img,.ride .thumb svg{width:100%;height:100%;object-fit:cover;display:block}
+.ride .info{min-width:0;display:flex;flex-direction:column;gap:2px}
+.ride .info b{font-size:15px}
+.ride .info small{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+
+.postcard{background:var(--card);border-radius:14px;padding:14px;position:relative;display:flex;flex-direction:column;gap:10px;
+  border:8px solid transparent;background-clip:padding-box;box-shadow:0 0 0 1px var(--line)}
+.postcard::before{content:"";position:absolute;inset:-8px;z-index:-1;border-radius:18px;
+  background:repeating-linear-gradient(135deg,var(--orange) 0 10px,var(--card) 10px 16px,#4c8fb0 16px 26px,var(--card) 26px 32px)}
+.postwrap{position:relative;z-index:0}
+.postcard .hand{font-family:var(--f-hand);font-size:20px;color:var(--brand);line-height:1.4}
+:root[data-theme="dark"] .postcard .hand{color:var(--road)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .postcard .hand{color:var(--road)}}
+.postcard .msg{font-family:var(--f-hand);font-size:15px}
+.postcard img{width:100%;height:130px;object-fit:cover;border-radius:10px;display:block}
+.postcard .mini{height:120px;border-radius:10px;overflow:hidden;background:var(--land);border:1px solid var(--line)}
+.postcard .mini svg{width:100%;height:100%;display:block}
+.postcard dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:12px}
+.postcard dt{color:var(--muted)}
+.postcard dd{margin:0}
+
+.ridepick{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.ridepick button{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:6px 10px;font-size:12px;text-align:left}
+.ridepick button[aria-pressed="true"]{border-color:var(--orange)}
+.ridepick small{display:block;color:var(--muted)}
+
+nav.tabs{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--line);background:var(--paper);
+  padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs button{border:0;background:none;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:700;color:var(--muted)}
+nav.tabs button[aria-current="page"]{color:var(--orange)}
+
+.sheet-bg{position:absolute;inset:0;background:rgba(10,20,14,.45);display:flex;align-items:flex-end;z-index:20}
+.sheet{background:var(--paper);width:100%;max-height:88%;overflow-y:auto;border-radius:22px 22px 0 0;display:flex;flex-direction:column;gap:14px;
+  padding-block:18px calc(20px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line);align-self:center}
+.sheet h2{font-family:var(--f-display);font-weight:900;font-size:20px;margin:0}
+.spotedit{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.spotedit img{width:64px;height:64px;border-radius:10px;object-fit:cover;flex:none}
+.spotedit .field{flex:1;min-width:0}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.album-hero{height:150px;border-radius:16px;overflow:hidden;position:relative}
+.album-hero img{width:100%;height:100%;object-fit:cover}
+.album-hero div{position:absolute;inset:auto 0 0 0;padding:12px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6))}
+.album-hero b{font-family:var(--f-display);font-size:20px;font-weight:900;display:block}
+.timeline{display:flex;flex-direction:column;gap:0;border-left:3px solid var(--road);margin-left:8px;padding-left:16px}
+.timeline .ev{position:relative;padding-bottom:14px;display:flex;gap:10px;align-items:center}
+.timeline .ev::before{content:"";position:absolute;left:-23px;top:8px;width:11px;height:11px;border-radius:50%;background:var(--paper);border:3px solid var(--road)}
+.timeline img{width:90px;height:60px;border-radius:10px;object-fit:cover;flex:none}
+.timeline small{color:var(--muted);display:block}
+
+.toast{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);background:var(--brand);color:var(--brand-ink);padding:10px 16px;border-radius:12px;font-weight:700;font-size:13px;
+  z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90%;text-align:center}
+
+/* map styling */
+.m-sea{fill:var(--sea)} .m-land{fill:var(--land)} .navi .m-land{fill:var(--land-navi)} .m-lake{fill:var(--lake)}
+.m-coast{fill:none;stroke:var(--faint);stroke-width:1}
+.m-border{fill:none;stroke:var(--border-line);stroke-width:1;stroke-dasharray:4 3}
+.m-contour{fill:none;stroke:var(--border-line);stroke-width:.8}
+.navi .m-contour{stroke:var(--faint);opacity:.5}
+.r-faint{fill:none;stroke:var(--faint);stroke-width:1.4;stroke-dasharray:2 3;stroke-linecap:round}
+.r-case{fill:none;stroke:var(--faint);stroke-width:5;stroke-linecap:round}
+.r-navi{fill:none;stroke:var(--card);stroke-width:3;stroke-linecap:round}
+.r-navi.hwy{stroke:var(--hwy)} .r-navi.nat{stroke:var(--nat)} .r-navi.narrow{stroke-dasharray:3 2}
+.r-done{fill:none;stroke:var(--road);stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+.navi .r-done{stroke-width:2.2;opacity:.85}
+.r-new{fill:none;stroke:var(--orange);stroke-width:4;stroke-linecap:round}
+.r-plan-old{fill:none;stroke:var(--road);stroke-width:4.5;stroke-linecap:round}
+.r-wish{fill:none;stroke:var(--orange);stroke-width:2.4;stroke-dasharray:5 4;stroke-linecap:round}
+.r-rec{fill:none;stroke:#c2361b;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.r-guide{fill:none;stroke:var(--orange);stroke-width:3;stroke-dasharray:1 6;stroke-linecap:round}
+.replay{fill:none;stroke:var(--road);stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.6s ease-in-out forwards;animation-delay:var(--d,0s)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.pinfade{opacity:0;animation:fade .5s forwards;animation-delay:var(--d,0s)}
+@keyframes fade{to{opacity:1}}
+.lbl{font-size:9px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:var(--land);stroke-width:3px;stroke-linejoin:round}
+.navi .lbl{stroke:var(--land-navi)}
+.lbl.muted{fill:var(--muted);font-weight:500}
+.home-zone{fill:var(--orange);fill-opacity:.07;stroke:var(--orange);stroke-width:1;stroke-dasharray:3 3}
+.home-dot{fill:var(--brand);stroke:var(--card);stroke-width:2}
+.node-tap{fill:var(--orange);fill-opacity:.9;stroke:var(--card);stroke-width:2;cursor:pointer}
+.node-ring{fill:none;stroke:var(--orange);stroke-width:2;animation:pulse 1.4s infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pulse{0%{opacity:.9;transform:scale(.6)}100%{opacity:0;transform:scale(1.8)}}
+.pin-body{fill:var(--card);stroke:var(--brand);stroke-width:1.5}
+@media (prefers-reduced-motion: reduce){
+  .replay{animation:none;stroke-dashoffset:0} .pinfade{animation:none;opacity:1} .node-ring,.dot{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <aside class="concept">
+    <div class="logo"><svg width="34" height="24" viewBox="0 0 34 24" aria-hidden="true"><path d="M1 21 L11 6 L17 13 L22 7 L33 21" fill="none" stroke="var(--orange)" stroke-width="2.6" stroke-linejoin="round"/><path d="M6 23 C14 17, 20 22, 28 16" fill="none" stroke="var(--brand)" stroke-width="2.6" stroke-linecap="round"/></svg>ミチノート <span class="tag">試作 v0.1</span></div>
+    <h1>走った道で、<br><em>自分だけの地図</em>が育つ。</h1>
+    <p>バイクの旅を白地図に残し、まだ走っていない道を次の冒険として提案するアプリの動く試作です。</p>
+    <div class="scope">
+      <b>この試作で触れる機能</b>
+      <ol>
+        <li>白地図（マイ地図）とナビ地図の切り替え</li>
+        <li>走行記録と写真・立ち寄りスポット</li>
+        <li>未走行区間を使ったルート提案</li>
+        <li>道の招待状（送る・受け取る）</li>
+      </ol>
+    </div>
+    <p style="font-size:12px">地図は架空の地域です。走行はタップで道をたどる疑似記録で、GPSは使いません。データはこのブラウザ内だけに保存されます。</p>
+  </aside>
+
+  <div class="app" id="app">
+    <header class="top">
+      <div class="logo"><svg width="30" height="22" viewBox="0 0 34 24" aria-hidden="true"><path d="M1 21 L11 6 L17 13 L22 7 L33 21" fill="none" stroke="var(--orange)" stroke-width="2.6" stroke-linejoin="round"/><path d="M6 23 C14 17, 20 22, 28 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>ミチノート</div>
+      <div class="modes" role="group" aria-label="地図の種類">
+        <button id="m-navi" aria-pressed="false">ナビ地図</button>
+        <button id="m-white" aria-pressed="true">マイ地図<small style="font-weight:500;opacity:.8">(白地図)</small></button>
+      </div>
+    </header>
+    <div class="mapwrap" id="mapwrap"></div>
+    <section class="panel" id="panel" aria-live="polite"></section>
+    <nav class="tabs" id="tabs"></nav>
+  </div>
+</div>
+
+<script>
+(() => {
+/* ---------- 地図データ（架空の地域） ---------- */
+const N = {
+  home:[90,400,'自宅','town'], A:[150,380,'駅前','town'], B:[210,410,'川沿いの町','town'], C:[280,452,'港町','coast'],
+  D:[336,382,'岬の展望台','coast'], E:[312,302,'海の駅','cafe'], F:[306,228,'灯台','coast'], G:[272,150,'白浜','coast'],
+  H:[248,72,'北の漁港','coast'], I:[228,252,'茶屋の峠','mtn'], J:[178,302,'里山','field'], K:[118,318,'棚田','field'],
+  L:[48,300,'西の谷','field'], M:[72,178,'湖畔','lake'], N:[156,158,'湖の東','cafe'], O:[204,128,'高原牧場','mtn'],
+  P:[128,88,'山頂ゲート','mtn'], Q:[52,96,'源流の村','field'], R:[168,470,'南IC','town']
+};
+const CAFE = new Set(['E','N','C','D']);
+const TYPE = { nat:{n:'国道',v:45}, cty:{n:'県道',v:40}, coast:{n:'海沿い',v:42}, mtn:{n:'峠道',v:32}, narrow:{n:'狭い山道',v:22}, hwy:{n:'高速',v:75}, lake:{n:'湖畔',v:38} };
+const E = [
+  ['home','A','nat','国道12号',6],['A','B','nat','国道12号',-5],['B','C','nat','国道12号',6],
+  ['C','D','coast','岬ライン',10],['D','E','coast','潮風ライン',-8],['E','F','coast','潮風ライン',6],
+  ['F','G','coast','白浜シーサイド',-8],['G','H','coast','北浜街道',6],['B','E','cty','県道30号',-10],
+  ['A','J','cty','県道8号',8],['J','I','mtn','茶屋峠道',-12],['I','F','mtn','灯台坂',8],['I','E','cty','県道31号',10],
+  ['J','K','cty','里山みち',-6],['K','home','cty','棚田農道',6],['K','L','narrow','谷の細道',-8],['L','home','cty','県道5号',10],
+  ['L','M','mtn','西湖道',-14],['M','N','lake','湖畔ロード',14],['N','J','cty','県道8号',-10],['N','O','mtn','高原ライン',-8],
+  ['O','I','mtn','牧場坂',12],['O','G','cty','白浜みち',-8],['O','H','narrow','北尾根林道',10],['N','P','mtn','山頂道路',8],
+  ['P','Q','narrow','源流林道',-10],['Q','M','cty','湖西道',-8],['P','O','mtn','雲上スカイライン',-10],['P','H','mtn','尾根スカイライン',-12],
+  ['home','R','hwy','南海道(高速)',8],['R','C','hwy','南海道(高速)',10],['R','B','cty','県道2号',-6]
+].map(([a,b,type,name,bend]) => {
+  const [ax,ay]=N[a],[bx,by]=N[b]; const dx=bx-ax,dy=by-ay,len=Math.hypot(dx,dy);
+  const cx=(ax+bx)/2 - dy/len*bend, cy=(ay+by)/2 + dx/len*bend;
+  return {a,b,type,name,cx,cy,key:k(a,b),km:Math.round(len*0.125*10)/10};
+});
+function k(a,b){return a<b?a+'|'+b:b+'|'+a}
+const EK = Object.fromEntries(E.map(e=>[e.key,e]));
+const ADJ = {}; for(const e of E){(ADJ[e.a]??=[]).push(e.b);(ADJ[e.b]??=[]).push(e.a);}
+const TOTAL_KM = E.reduce((s,e)=>s+e.km,0);
+const mins = e => e.km/TYPE[e.type].v*60;
+
+/* ---------- 写真の代わりに使う風景イラスト ---------- */
+const SCN={};
+function scene(kind){
+  if(SCN[kind]) return SCN[kind];
+  const s={
+    sunset:`<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b4a8a"/><stop offset=".55" stop-color="#f08a4b"/><stop offset="1" stop-color="#ffd27a"/></linearGradient></defs><rect width="160" height="110" fill="url(#g)"/><circle cx="80" cy="66" r="14" fill="#fff1c1"/><rect y="70" width="160" height="40" fill="#3b4d72"/><path d="M0 70 Q40 52 70 70Z M100 70 Q130 50 160 62 V70Z" fill="#2c3550"/><rect x="60" y="76" width="40" height="3" fill="#ffd27a" opacity=".6"/>`,
+    sea:`<rect width="160" height="110" fill="#8fc8ea"/><rect y="60" width="160" height="50" fill="#2f7fb5"/><path d="M90 60 Q120 20 160 30 V110 H120 Q110 80 90 60Z" fill="#4f8f44"/><path d="M0 104 Q60 80 130 110Z" fill="#9b9b8f"/><path d="M10 100 Q70 82 128 108" stroke="#fff" stroke-width="2" fill="none"/>`,
+    mountain:`<rect width="160" height="110" fill="#a9d6f0"/><path d="M0 90 L50 30 L75 55 L105 20 L160 85 V110 H0Z" fill="#4a7d4f"/><path d="M96 31 L105 20 L114 31 L108 29 L103 33Z" fill="#fff"/><path d="M0 95 Q80 75 160 98 V110 H0Z" fill="#6aa35a"/>`,
+    lake:`<rect width="160" height="110" fill="#bfe2f2"/><path d="M0 60 L40 28 L70 50 L100 22 L160 58 V62 H0Z" fill="#5c8f62"/><rect y="60" width="160" height="50" fill="#5aa6c7"/><path d="M0 62 L40 92 L70 72 L100 98 L160 64Z" fill="#5c8f62" opacity=".35"/>`,
+    torii:`<rect width="160" height="110" fill="#6e9d5a"/><rect y="78" width="160" height="32" fill="#c9b28a"/><rect x="40" y="26" width="80" height="7" rx="2" fill="#c83a24"/><rect x="46" y="38" width="68" height="5" fill="#c83a24"/><rect x="54" y="33" width="7" height="50" fill="#c83a24"/><rect x="99" y="33" width="7" height="50" fill="#c83a24"/>`,
+    cafe:`<rect width="160" height="110" fill="#c79a6b"/><rect y="70" width="160" height="40" fill="#8a5a3a"/><rect x="18" y="14" width="56" height="40" fill="#d8eef5"/><rect x="86" y="14" width="56" height="40" fill="#d8eef5"/><path d="M60 62 h34 v18 a12 12 0 0 1 -12 12 h-10 a12 12 0 0 1 -12 -12z" fill="#fff"/><path d="M94 66 a8 8 0 0 1 0 14" stroke="#fff" stroke-width="3" fill="none"/>`,
+    field:`<rect width="160" height="110" fill="#bfe0ef"/><path d="M0 50 Q80 36 160 50 V110 H0Z" fill="#8cc06a"/><path d="M0 66 Q80 54 160 66" stroke="#5f9a46" stroke-width="3" fill="none"/><path d="M0 82 Q80 72 160 84" stroke="#5f9a46" stroke-width="3" fill="none"/><path d="M0 98 Q80 90 160 100" stroke="#5f9a46" stroke-width="3" fill="none"/>`
+  }[kind] || '';
+  return SCN[kind] = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 110" preserveAspectRatio="xMidYMid slice">${s}</svg>`);
+}
+const kindFor = n => ({coast:'sea',mtn:'mountain',lake:'lake',cafe:'cafe',field:'field',town:'field'})[N[n][3]];
+const photoOf = sp => sp.photo || scene(sp.kind || kindFor(sp.node));
+
+/* ---------- 保存データ ---------- */
+const KEY='michinote-proto-v1';
+const SAMPLE = [
+  {id:'s1',sample:true,date:'2026-05-18',bike:'SR400',title:'はじめての海沿い',comment:'岬の夕日が最高だった。',path:['home','A','B','C','D','E','B','A','home'],
+   spots:[{node:'D',kind:'sunset',title:'岬の夕日',time:'17:42'},{node:'E',kind:'cafe',title:'海の駅でひと休み',time:'15:10'}]},
+  {id:'s2',sample:true,date:'2026-07-06',bike:'SR400',title:'湖畔の朝',comment:'朝の湖は風がなくて鏡みたい。',path:['home','L','M','N','J','A','home'],
+   spots:[{node:'M',kind:'lake',title:'湖畔の朝',time:'07:30'}]},
+  {id:'s3',sample:true,date:'2026-09-21',bike:'CB250R',title:'峠から灯台へ',comment:'茶屋の峠は路面きれい。灯台坂は少し急。',path:['home','K','J','I','F','E','B','A','home'],
+   spots:[{node:'I',kind:'mountain',title:'茶屋の峠',time:'10:14'},{node:'F',kind:'sea',title:'灯台の下',time:'12:37'}]},
+  {id:'s4',sample:true,date:'2026-10-12',bike:'CB250R',title:'近所の神社まで',comment:'',path:['home','K','L','home'],
+   spots:[{node:'K',kind:'torii',title:'棚田の神社',time:'09:05'}]}
+];
+const INVITE = {from:'ソラ',bike:'SR400',title:'高原から白浜へ下る道',msg:'この道、走ってみて！ 海が見えた瞬間が最高だった。',path:['N','O','G','F'],kind:'sea',
+  stops:'高原牧場（ソフトクリーム）', rest:'白浜の駐車場'};
+function fresh(){return {rides:JSON.parse(JSON.stringify(SAMPLE)),bikes:['SR400','CB250R'],wish:[],inviteSaved:false,hideHome:true}}
+function load(){try{const v=JSON.parse(localStorage.getItem(KEY));return v&&v.rides?v:null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('この端末では保存できませんでした（容量か設定を確認してください）')}}
+let S = load() || fresh();
+
+/* ---------- 画面の状態 ---------- */
+const U = {tab:'map', mode:'white', plan:null, cands:[], selCand:0, rec:null, logRide:null, bikeFilter:'all', invRide:null, invMsg:'この道、走ってみて！', replay:null, confirm:null, form:{time:'3',mood:'sea',avoid:'narrow'}};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const ridesSorted = () => [...S.rides].sort((a,b)=>a.date.localeCompare(b.date));
+const edgesOf = path => { const out=[]; for(let i=1;i<path.length;i++) out.push(k(path[i-1],path[i])); return out; };
+const kmOf = path => Math.round(edgesOf(path).reduce((s,x)=>s+EK[x].km,0)*10)/10;
+const minOf = path => edgesOf(path).reduce((s,x)=>s+mins(EK[x]),0);
+function traveled(upto){ const s=new Set(); for(const r of ridesSorted()){ if(upto && r.id===upto) break; edgesOf(r.path).forEach(x=>s.add(x)); } return s; }
+const esc = t => String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtMin = m => { m=Math.round(m/5)*5; const h=Math.floor(m/60), r=m%60; return h? `${h}時間${r?r+'分':''}` : `${r}分`; };
+const pathD = path => { let d=`M${N[path[0]][0]} ${N[path[0]][1]}`; for(let i=1;i<path.length;i++){ const e=EK[k(path[i-1],path[i])]; d+=` Q${e.cx.toFixed(1)} ${e.cy.toFixed(1)} ${N[path[i]][0]} ${N[path[i]][1]}`;} return d; };
+const edgeD = e => `M${N[e.a][0]} ${N[e.a][1]} Q${e.cx.toFixed(1)} ${e.cy.toFixed(1)} ${N[e.b][0]} ${N[e.b][1]}`;
+
+/* ---------- アイコン ---------- */
+const I = {
+  map:'<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14 M15 6v14"/>',
+  rec:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5" fill="currentColor"/>',
+  plan:'<path d="M12 3l2.2 5.6L20 9.5l-4.5 3.8L17 19l-5-3-5 3 1.5-5.7L4 9.5l5.8-.9z"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  log:'<path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z M4 19V5 M8 7h8 M8 11h6"/>',
+  pin:'<path d="M12 21s-6-5.5-6-11a6 6 0 0112 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6 M12 7.5v.5"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
+  photo:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+  play:'<path d="M7 4l13 8-13 8z" fill="currentColor"/>',
+  bike:'<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h5l3 7 M10 9l-1-3h-2 M13 9l2 3"/>'
+};
+const ic = (n,s=18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+
+/* ---------- 地図の描画 ---------- */
+const COAST = [[300,-300],[300,0],[270,60],[285,120],[312,178],[342,240],[336,300],[352,350],[362,400],[312,462],[240,502],[200,522],[150,900]];
+function smooth(pts){ let d=`M${pts[0][0]} ${pts[0][1]}`; for(let i=0;i<pts.length-1;i++){ const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+  d+=` C${p1[0]+(p2[0]-p0[0])/6} ${p1[1]+(p2[1]-p0[1])/6} ${p2[0]-(p3[0]-p1[0])/6} ${p2[1]-(p3[1]-p1[1])/6} ${p2[0]} ${p2[1]}`;} return d; }
+const COAST_D = smooth(COAST);
+const LAND_D = 'M-500 -300 L300 -300 ' + COAST_D.replace(/^M[^C]+/,'') + ' L-500 900 Z';
+const CONTOURS = [[128,88],[204,128],[228,252]].map(([x,y],j)=>[1,2,3].map(i=>`<ellipse class="m-contour" cx="${x}" cy="${y}" rx="${12+i*11}" ry="${8+i*8}" transform="rotate(${-20+j*25} ${x} ${y})"/>`).join('')).join('');
+const BORDERS = '<path class="m-border" d="M-60 240 Q60 230 120 250 T260 200 Q300 190 330 210"/><path class="m-border" d="M140 -40 Q160 60 150 130 T190 330 Q200 420 180 560"/>';
+
+function overlay(){
+  const o={edges:[],path:null,guide:null,adj:[],replay:null,focusNodes:null};
+  if(U.replay){ o.replay=U.replay; return o; }
+  if(U.tab==='plan' && U.cands[U.selCand]){ const c=U.cands[U.selCand], tv=traveled(); o.edges=edgesOf(c.path).map(x=>({x,cls:tv.has(x)?'r-plan-old':'r-new'})); }
+  if(U.tab==='rec' && U.rec){ o.path=U.rec.path; o.adj=ADJ[U.rec.path.at(-1)]; if(U.rec.guide) o.guide=U.rec.guide; }
+  if(U.tab==='rec' && !U.rec && U.plan) o.guide=U.plan.path;
+  if(U.tab==='invite'){ const tv=traveled(); o.edges=edgesOf(INVITE.path).map(x=>({x,cls:tv.has(x)?'r-plan-old':'r-new'})); }
+  if(U.tab==='log' && U.logRide){ const r=S.rides.find(r=>r.id===U.logRide); if(r) o.edges=edgesOf(r.path).map(x=>({x,cls:'r-new'})); }
+  return o;
+}
+function renderMap(){
+  const navi = U.mode==='navi', o=overlay();
+  const tv = o.replay ? new Set() : traveled();
+  const seen = new Set(['home']); for(const x of tv){ const [a,b]=x.split('|'); seen.add(a); seen.add(b); }
+  let g = `<rect class="m-sea" x="-500" y="-400" width="1400" height="1400"/><path class="m-land" d="${LAND_D}"/><path class="m-coast" d="${COAST_D}"/>`;
+  g += `<ellipse class="m-lake" cx="112" cy="146" rx="30" ry="16"/>` + CONTOURS + BORDERS;
+  if(!navi && S.hideHome) g += `<circle class="home-zone" cx="${N.home[0]}" cy="${N.home[1]}" r="34"/>`;
+  if(navi){ for(const e of E) g+=`<path class="r-case" d="${edgeD(e)}"/>`; for(const e of E) g+=`<path class="r-navi ${e.type}" d="${edgeD(e)}"/>`; }
+  else for(const e of E) if(!tv.has(e.key)) g+=`<path class="r-faint" d="${edgeD(e)}"/>`;
+  for(const x of S.wish) if(!tv.has(x)) g+=`<path class="r-wish" d="${edgeD(EK[x])}"/>`;
+  for(const x of tv) g+=`<path class="r-done" d="${edgeD(EK[x])}"/>`;
+  if(o.guide) g+=`<path class="r-guide" d="${pathD(o.guide)}"/>`;
+  for(const {x,cls} of o.edges) g+=`<path class="${cls}" d="${edgeD(EK[x])}"/>`;
+  if(o.path && o.path.length>1) g+=`<path class="r-rec" d="${pathD(o.path)}"/>`;
+  let pins=[];
+  if(o.replay){
+    o.replay.forEach((r,i)=>{ g+=`<path class="replay" pathLength="1" style="--d:${r.delay}s" d="${pathD(r.path)}"/>`;
+      r.spots.forEach(sp=>pins.push({sp,delay:r.delay+1.4})); });
+  } else if(!o.path){
+    const list = U.tab==='log'&&U.logRide ? S.rides.filter(r=>r.id===U.logRide) : ridesSorted();
+    for(const r of list) for(const sp of r.spots) pins.push({sp});
+  }
+  // labels
+  for(const id in N){ const [x,y,name]=N[id]; if(id==='home') continue;
+    if(navi || seen.has(id) || (o.adj||[]).includes(id)) g+=`<text class="lbl ${navi||seen.has(id)?'':'muted'}" x="${x+6}" y="${y-5}">${name}</text>`; }
+  g+=`<circle class="home-dot" cx="${N.home[0]}" cy="${N.home[1]}" r="5"/><text class="lbl" x="${N.home[0]-10}" y="${N.home[1]+16}">自宅</text>`;
+  // pins (latest per node)
+  const byNode={}; pins.forEach(p=>byNode[p.sp.node]=p);
+  for(const n in byNode){ const {sp,delay}=byNode[n]; const [x,y]=N[n];
+    g+=`<g class="${delay!=null?'pinfade':''}" style="--d:${delay||0}s"><path class="pin-body" d="M${x} ${y} l-6 -9 a14 14 0 1 1 12 0 z"/><image href="${photoOf(sp)}" x="${x-12}" y="${y-41}" width="24" height="24" clip-path="url(#pc)" preserveAspectRatio="xMidYMid slice"/></g>`; }
+  for(const n of o.adj||[]){ const [x,y]=N[n]; g+=`<circle class="node-ring" cx="${x}" cy="${y}" r="9"/><circle class="node-tap" data-node="${n}" cx="${x}" cy="${y}" r="7"><title>${N[n][2]}へ進む</title></circle>`; }
+  if(o.path){ const [x,y]=N[o.path.at(-1)]; g+=`<g id="bike" transform="translate(${x} ${y})"><circle r="8" fill="#c2361b" stroke="#fff" stroke-width="2.5"/><circle r="2.5" fill="#fff"/></g>`; }
+  let cap='';
+  if(U.rec) cap=`<span class="rec"><span class="dot" style="background:#fff"></span> 記録中</span>`;
+  else if(U.replay) cap=`<span id="replaycap">${U.replay.caption||''}</span>`;
+  else if(!navi) cap=`<span>マイ地図</span>${S.rides.some(r=>r.sample)?'<span>サンプル記録を表示中</span>':''}`;
+  let legend='';
+  if(U.tab==='plan'||U.tab==='invite') legend=`<div class="legend"><div><i style="background:var(--road)"></i>走った道</div><div><i style="background:var(--orange)"></i>未走行の道</div></div>`;
+  else if(!navi && !U.rec && S.wish.length) legend=`<div class="legend"><div><i style="background:var(--road)"></i>走った道</div><div><i style="background:repeating-linear-gradient(90deg,var(--orange) 0 5px,transparent 5px 8px)"></i>行きたい道</div></div>`;
+  document.getElementById('mapwrap').innerHTML = `<svg viewBox="0 10 400 500" preserveAspectRatio="xMidYMid meet" class="${navi?'navi':''}" role="img" aria-label="${navi?'ナビ地図':'走った道だけが残るマイ地図'}"><defs><clipPath id="pc" clipPathUnits="objectBoundingBox"><circle cx=".5" cy=".5" r=".5"/></clipPath></defs>${g}</svg><div class="mapcap">${cap}</div>${legend}`;
+}
+document.getElementById('mapwrap').addEventListener('click', ev => { const n=ev.target.closest('[data-node]'); if(n) step(n.dataset.node); });
+
+/* ---------- 走行記録（疑似） ---------- */
+let animating=false;
+function step(to){
+  if(!U.rec || animating) return; const from=U.rec.path.at(-1); if(!ADJ[from].includes(to)) return;
+  const e=EK[k(from,to)], A=N[from], B=N[to]; animating=true;
+  const bike=document.getElementById('bike'), t0=performance.now(), dur=reduce?0:650;
+  const tick=now=>{ const t=dur?Math.min(1,(now-t0)/dur):1, u=1-t;
+    const x=u*u*A[0]+2*u*t*e.cx+t*t*B[0], y=u*u*A[1]+2*u*t*e.cy+t*t*B[1];
+    if(bike) bike.setAttribute('transform',`translate(${x} ${y})`);
+    if(t<1) requestAnimationFrame(tick); else { animating=false; U.rec.path.push(to); U.rec.clock+=mins(e); render(); if(U.rec.auto) setTimeout(autoStep, reduce?50:250); } };
+  requestAnimationFrame(tick);
+}
+function autoStep(){
+  if(!U.rec||!U.rec.auto) return; const g=U.rec.guide, i=U.rec.path.length;
+  if(g && i<g.length){ step(g[i]); return; }
+  U.rec.auto=false; render(); toast('ルートを走り終えました。「走行を終える」で保存できます');
+}
+function startRec(guide){ U.rec={path:['home'],spots:[],clock:0,start:new Date(),guide:guide||null,auto:false}; U.tab='rec'; render(); }
+
+/* ---------- ルート提案 ---------- */
+function suggest(){
+  const {time,mood,avoid}=U.form, budget=(+time)*60*0.8, tv=traveled(), wish=new Set(S.wish);
+  const allowed = e => !(avoid==='narrow' && e.type==='narrow') && !(avoid==='hwy' && e.type==='hwy');
+  const moodHit = (e,n) => mood==='sea'?e.type==='coast': mood==='mtn'?(e.type==='mtn'||e.type==='narrow'): mood==='lake'?e.type==='lake'||(['M','N'].includes(n)) : CAFE.has(n);
+  const found=[]; let steps=0;
+  const dfs=(node,path,used,t)=>{
+    if(++steps>60000) return;
+    for(const nb of ADJ[node]){ const e=EK[k(node,nb)]; if(used.has(e.key)||!allowed(e)) continue; const nt=t+mins(e); if(nt>budget) continue;
+      if(nb==='home'){ if(path.length>=3) found.push([...path,'home']); continue; }
+      if(path.includes(nb)) continue;
+      used.add(e.key); path.push(nb); dfs(nb,path,used,nt); path.pop(); used.delete(e.key); }
+  };
+  dfs('home',['home'],new Set(),0);
+  const scored = found.map(p=>{ const es=edgesOf(p).map(x=>EK[x]); let nw=0,md=0,ws=0; es.forEach((e,i)=>{ if(!tv.has(e.key)) nw+=e.km; if(moodHit(e,p[i+1])) md+=e.km; if(wish.has(e.key)) ws+=e.km; });
+    const t=minOf(p); const fill=t/budget; const hw=es.filter(e=>e.type==='hwy').reduce((a,e)=>a+e.km,0); return {path:p,nw,md,ws,t,score:nw*2.5+md*3+ws*5-hw*2+(fill>.55?8:0)}; }).sort((a,b)=>b.score-a.score);
+  const pick=[]; for(const c of scored){ const s=new Set(edgesOf(c.path)); if(pick.every(p=>{ const o=edgesOf(p.path).filter(x=>s.has(x)).length; return o/Math.max(s.size,1)<.55; })) pick.push(c); if(pick.length===3) break; }
+  U.cands = pick.map(c=>describe(c,tv,mood)); U.selCand=0;
+}
+function describe(c,tv,mood){
+  const es=edgesOf(c.path).map(x=>EK[x]);
+  const newRoads={}; es.forEach(e=>{ if(!tv.has(e.key)) newRoads[e.name]=(newRoads[e.name]||0)+e.km; });
+  const top=Object.entries(newRoads).sort((a,b)=>b[1]-a[1])[0];
+  let lead=null; if(top){ const idx=es.findIndex(e=>e.name===top[0]); for(let i=idx-1;i>=0;i--) if(tv.has(es[i].key)){ lead=es[i].name; break; } }
+  const stops=c.path.filter(n=>CAFE.has(n)).filter((v,i,a)=>a.indexOf(v)===i).map(n=>N[n][2]);
+  const kinds=es.reduce((m,e)=>(m[e.type]=(m[e.type]||0)+e.km,m),{});
+  const far=c.path.reduce((a,n)=>Math.hypot(N[n][0]-N.home[0],N[n][1]-N.home[1])>Math.hypot(N[a][0]-N.home[0],N[a][1]-N.home[1])?n:a,'home');
+  const mainType=Object.entries(kinds).sort((a,b)=>b[1]-a[1])[0][0];
+  const base = c.ws>0 ? '招待状の道をたどる' : mood==='cafe'&&stops.length ? `${stops[0]}に寄るカフェ` : mood==='sea'&&c.md>5 ? '海沿いを走る' : mood==='mtn'&&c.md>5 ? '峠をつなぐ' : mood==='lake'&&c.md>2 ? '湖をめぐる' : ({coast:'海沿いを走るルート',mtn:'峠と高原のルート',narrow:'山あいの静かなルート',lake:'湖をひと回りするルート',nat:'のんびり国道ルート',cty:'里山をつなぐルート',hwy:'高速で遠くへ行くルート'})[mainType].replace('ルート','');
+  const title = `${base}ルート（${N[far][2]}まで）`;
+  let why = top ? (lead ? `いつもの「${esc(lead)}」の先に、まだ走っていない「${esc(top[0])}」が<b>${top[1].toFixed(1)}km</b>あります。` : `まだ走っていない「${esc(top[0])}」を<b>${top[1].toFixed(1)}km</b>走れます。`) : '全区間が走ったことのある道です。慣れた道でゆっくり走れます。';
+  if(c.ws>0) why += `ソラから届いた招待状の道を${c.ws.toFixed(1)}km通ります。`;
+  else if(c.md>3) why += ({sea:'海沿いの区間',mtn:'峠道',lake:'湖畔の道',cafe:'カフェのある道'})[mood]+`が${c.md.toFixed(0)}kmあります。`;
+  return {...c,title,why,stops,km:kmOf(c.path),rest:Math.max(15,Math.round(c.t*0.25/5)*5)};
+}
+
+/* ---------- 写真読み込み ---------- */
+function readPhoto(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onerror=rej; fr.onload=()=>{ const img=new Image(); img.onerror=rej; img.onload=()=>{
+  const s=Math.min(1,360/Math.max(img.width,img.height)), c=document.createElement('canvas'); c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+  c.getContext('2d').drawImage(img,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',.72)); }; img.src=fr.result; }; fr.readAsDataURL(file); }); }
+
+/* ---------- パネル ---------- */
+function panelMap(){
+  const tv=traveled(), km=[...tv].reduce((s,x)=>s+EK[x].km,0), days=new Set(S.rides.map(r=>r.date)).size;
+  const hasSample=S.rides.some(r=>r.sample), empty=!S.rides.length;
+  return `
+  <h2>${empty?'まだ白紙の地図です':'<u>自分だけの地図</u>が育っています'}</h2>
+  <div class="stats">
+    <div class="stat"><small>走った道</small><b>${km.toFixed(0)}<span>km</span></b></div>
+    <div class="stat"><small>開拓率</small><b>${(km/TOTAL_KM*100).toFixed(0)}<span>%</span></b></div>
+    <div class="stat"><small>記録した日</small><b>${days}<span>日</span></b></div>
+  </div>
+  <div class="row">
+    <button class="btn brand" data-act="grow" ${empty?'disabled':''}>${ic('play',14)} 地図が育つ様子を再生</button>
+    <button class="btn" data-go="rec">${ic('rec',16)} 記録する</button>
+  </div>
+  ${hasSample?`<div class="note">${ic('info',16)}<div>いま表示しているのは<b>サンプルの記録</b>です。自分の記録だけで始めるには白紙に戻してください。<div class="row" style="margin-top:6px">${U.confirm==='reset'
+    ?`<button class="btn small danger" data-act="reset-yes">白紙に戻す（サンプルを消す）</button><button class="btn small" data-act="cancel">やめる</button>`
+    :`<button class="btn small" data-act="reset">白紙から始める</button>`}</div></div></div>`
+  :`<div class="row"><button class="btn small" data-act="sample">サンプルの記録を入れる</button></div>`}
+  <div class="howto">
+    <div><span class="ic">${ic('rec',16)}</span><p><b>使い方</b>停車中に記録を開始。走り終えて保存すると、通った道が白地図に描かれます。</p></div>
+    <div><span class="ic">${ic('photo',16)}</span><p><b>地図に残るもの</b>走行日・ルート・距離・写真・立ち寄りスポット。日別・愛車別に履歴から振り返れます。</p></div>
+    <div><span class="ic">${ic('lock',16)}</span><p><b>公開は自分で選ぶ</b>まずは自分だけの記録。招待状などで共有するときは自宅周辺を隠します。</p></div>
+  </div>
+  <label class="row" style="font-size:13px"><input type="checkbox" id="hidehome" ${S.hideHome?'checked':''}> 共有時に自宅周辺（オレンジの点線内）を隠す</label>`;
+}
+function panelRec(){
+  if(!U.rec) return `
+  <h2>走行を記録する</h2>
+  <p class="lead">この試作では、地図上のオレンジの点をタップして道をたどると走行を記録できます。実際のアプリではGPSで自動記録します。</p>
+  <div class="note">${ic('info',16)}<div>記録の開始と終了は<b>停車中に</b>行ってください。走行中は画面を操作しない設計にします。</div></div>
+  <button class="btn primary block" data-act="start">${ic('rec',16)} 自宅から記録を開始</button>
+  ${U.plan?`<div class="form"><h3>提案ルート「${esc(U.plan.title)}」</h3><p class="lead">${U.plan.km}km・約${fmtMin(U.plan.t)}。地図の点線がルートです。</p>
+    <button class="btn brand" data-act="start-plan">このルートで記録を開始</button></div>`:''}`;
+  const r=U.rec, cur=r.path.at(-1), km=kmOf(r.path), tv=traveled(), news=edgesOf(r.path).filter(x=>!tv.has(x)).length;
+  const hasSpot=r.spots.some(s=>s.node===cur);
+  return `
+  <div class="reclive">
+    <div class="row" style="justify-content:space-between"><div class="now">現在地<b>${N[cur][2]}</b></div><span class="chip"><span class="dot"></span> 記録中</span></div>
+    <div class="stats">
+      <div class="stat"><small>距離</small><b>${km.toFixed(1)}<span>km</span></b></div>
+      <div class="stat"><small>走行時間</small><b style="font-size:16px">${fmtMin(r.clock)}</b></div>
+      <div class="stat"><small>初めての道</small><b>${news}<span>本</span></b></div>
+    </div>
+    <div><h3 style="margin-bottom:6px">次に進む道（地図の点をタップしても進めます）</h3>
+      <div class="nexts">${ADJ[cur].map(n=>{const e=EK[k(cur,n)];return `<button class="btn small" data-step="${n}" ${r.auto?'disabled':''}>${N[n][2]} <span style="color:var(--muted);font-weight:500">${e.name}</span>${tv.has(e.key)?'':' <span class="chip sample">初</span>'}</button>`}).join('')}</div></div>
+    <div class="row">
+      ${r.guide&&r.path.length<r.guide.length?`<button class="btn small brand" data-act="auto" ${r.auto?'disabled':''}>${ic('play',12)} ルートどおり自動で進む</button>`:''}
+      <button class="btn small" data-act="spot" ${hasSpot||cur==='home'?'disabled':''}>${ic('pin',14)} ここを立ち寄りに登録</button>
+      <button class="btn small" data-act="undo" ${r.path.length<2||r.auto?'disabled':''}>1つ戻る</button>
+    </div>
+    ${r.spots.length?`<p class="lead">立ち寄り：${r.spots.map(s=>N[s.node][2]).join('、')}</p>`:''}
+    <div class="row">
+      <button class="btn primary" data-act="finish" ${r.path.length<2||r.auto?'disabled':''}>走行を終える（停車中）</button>
+      <button class="btn" data-act="discard">記録をやめる</button>
+    </div>
+  </div>`;
+}
+function panelPlan(){
+  const f=U.form, opt=(id,list)=>list.map(([v,t])=>`<option value="${v}" ${f[id]===v?'selected':''}>${t}</option>`).join('');
+  return `
+  <h2>次の<u>冒険</u>を見つける</h2>
+  <p class="lead">人気の場所ではなく、あなたの履歴からまだ走っていない道を組み合わせて提案します。</p>
+  <div class="form">
+    <div class="grid2">
+      <div class="field"><label for="f-time">空き時間</label><select id="f-time" data-f="time">${opt('time',[['2','2時間'],['3','3時間'],['4','4時間'],['5','5時間']])}</select></div>
+      <div class="field"><label for="f-mood">気分</label><select id="f-mood" data-f="mood">${opt('mood',[['sea','海を見たい'],['mtn','峠を走りたい'],['lake','湖でのんびり'],['cafe','カフェに寄りたい']])}</select></div>
+    </div>
+    <div class="field"><label for="f-avoid">避けたい道</label><select id="f-avoid" data-f="avoid">${opt('avoid',[['narrow','狭い山道'],['hwy','高速道路'],['none','特になし']])}</select></div>
+    <button class="btn primary" data-act="suggest">${ic('plan',16)} ルートを提案する</button>
+  </div>
+  ${U.cands.length?`<h3>おすすめルート</h3>`+U.cands.map((c,i)=>`
+    <button class="cand" data-cand="${i}" aria-pressed="${i===U.selCand}">
+      <span class="t">${esc(c.title)} ${c.ws?'<span class="chip sample">招待状</span>':''}</span>
+      <span class="meta"><span>所要時間の目安<b>約${fmtMin(c.t+c.rest)}</b><small style="color:var(--muted)">休憩${c.rest}分込み</small></span><span>未走行区間<b>${c.nw.toFixed(1)}km</b><small style="color:var(--muted)">全${c.km}km</small></span><span>立ち寄り先<b>${c.stops.length?esc(c.stops[0]):'—'}</b><small style="color:var(--muted)">${c.stops.length>1?`ほか${c.stops.length-1}か所`:''}</small></span></span>
+      <span class="why"><b>このルートを選んだ理由</b><br>${c.why}</span>
+    </button>`).join('')+`<button class="btn brand block" data-act="use-plan">選んだルートで記録へ進む</button>`
+  : U.plan===false?`<div class="note">${ic('info',16)}<div>条件に合う周回ルートが見つかりませんでした。空き時間を増やすか、避けたい道を変えてみてください。</div></div>`:''}
+  <div class="note">${ic('info',16)}<div>所要時間は目安です。実際のアプリでは二輪の通行規制や道路状況のデータ連携が必要です。</div></div>`;
+}
+function miniMap(path, hide){
+  const xs=path.map(n=>N[n][0]), ys=path.map(n=>N[n][1]); const pad=30;
+  let x0=Math.min(...xs)-pad,y0=Math.min(...ys)-pad,w=Math.max(...xs)-x0+pad,h=Math.max(...ys)-y0+pad; const r=w/h, tr=3; if(r<tr){ const nw=h*tr; x0-=(nw-w)/2; w=nw; } else { const nh=w/tr; y0-=(nh-h)/2; h=nh; }
+  const [hx,hy]=N.home, maskId='mk'+Math.random().toString(36).slice(2,7);
+  const near = hide && hx>x0-40 && hx<x0+w+40 && hy>y0-40 && hy<y0+h+40;
+  return `<svg viewBox="${x0} ${y0} ${w} ${h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="ルートの地図">
+    <defs><mask id="${maskId}"><rect x="-500" y="-500" width="1500" height="1500" fill="#fff"/>${near?`<circle cx="${hx}" cy="${hy}" r="34" fill="#000"/>`:''}</mask>
+    <pattern id="h${maskId}" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="2" height="5" fill="var(--faint)"/></pattern></defs>
+    <rect class="m-sea" x="-500" y="-500" width="1500" height="1500"/><path class="m-land" d="${LAND_D}"/>
+    ${E.map(e=>`<path class="r-faint" d="${edgeD(e)}"/>`).join('')}
+    <g mask="url(#${maskId})"><path class="r-done" style="stroke-width:5" d="${pathD(path)}"/></g>
+    ${near?`<circle cx="${hx}" cy="${hy}" r="34" fill="url(#h${maskId})" stroke="var(--faint)" stroke-dasharray="3 3"/><text class="lbl muted" x="${hx}" y="${hy+3}" text-anchor="middle">非表示</text>`:''}
+    <circle cx="${N[path[0]][0]}" cy="${N[path[0]][1]}" r="5" fill="var(--road)" ${near&&path[0]==='home'?'mask="url(#'+maskId+')"':''}/>
+    <circle cx="${N[path.at(-1)][0]}" cy="${N[path.at(-1)][1]}" r="5" fill="var(--orange)" ${near&&path.at(-1)==='home'?'mask="url(#'+maskId+')"':''}/></svg>`;
+}
+function panelInvite(){
+  const rides=[...S.rides].sort((a,b)=>b.date.localeCompare(a.date));
+  if(!U.invRide && rides[0]) U.invRide=rides[0].id;
+  const r=S.rides.find(x=>x.id===U.invRide);
+  const tv=traveled(), invNew=edgesOf(INVITE.path).filter(x=>!tv.has(x)).reduce((s,x)=>s+EK[x].km,0);
+  return `
+  <h2><u>道の招待状</u></h2>
+  <p class="lead">「いい道だった」を、友達の次の旅に。受け取った道は地図に保存して、提案に使えます。</p>
+  <h3>届いた招待状 <span class="chip sample">サンプル</span></h3>
+  <div class="postwrap"><div class="postcard">
+    <div class="hand">道の招待状 — この道、走ってみて！</div>
+    <img src="${scene(INVITE.kind)}" alt="白浜へ下る海沿いの道のイラスト">
+    <div class="mini">${miniMap(INVITE.path,true)}</div>
+    <div class="msg">${esc(INVITE.msg)}</div>
+    <dl><dt>差出人</dt><dd>${INVITE.from}（愛車 ${INVITE.bike}）</dd><dt>道</dt><dd>${esc(INVITE.title)}・${kmOf(INVITE.path)}km</dd><dt>立ち寄り</dt><dd>${INVITE.stops}</dd><dt>あなたの未走行</dt><dd>${invNew.toFixed(1)}km</dd></dl>
+    ${S.inviteSaved?`<div class="row"><span class="chip">保存済み・ルート提案に反映されます</span><button class="btn small" data-act="inv-plan">この道を含む提案を見る</button></div>`
+      :`<button class="btn primary" data-act="inv-save">${ic('map',16)} マイ地図に「行きたい道」として保存</button>`}
+  </div></div>
+  <h3 style="margin-top:6px">招待状をつくる</h3>
+  ${rides.length?`<div class="ridepick" role="group" aria-label="紹介する走行">${rides.map(x=>`<button data-invride="${x.id}" aria-pressed="${x.id===U.invRide}"><b>${esc(x.title||'無題の走行')}</b><small>${x.date} · ${kmOf(x.path)}km</small></button>`).join('')}</div>
+  <div class="field"><label for="inv-msg">ひとこと</label><textarea id="inv-msg" maxlength="80">${esc(U.invMsg)}</textarea></div>
+  ${r?`<div class="postwrap"><div class="postcard">
+    <div class="hand">道の招待状</div>
+    <img src="${photoOf(r.spots[0]||{node:r.path[1]||'A'})}" alt="${esc(r.spots[0]?.title||'走った道')}">
+    <div class="mini">${miniMap(r.path,S.hideHome)}</div>
+    <div class="msg" id="inv-preview">${esc(U.invMsg)}</div>
+    <dl><dt>道</dt><dd>${esc(r.title||'無題の走行')}・${kmOf(r.path)}km</dd>${r.spots.length?`<dt>立ち寄り</dt><dd>${r.spots.map(s=>esc(s.title||N[s.node][2])).join('、')}</dd>`:''}</dl>
+  </div></div>
+  ${S.hideHome?`<div class="note">${ic('lock',16)}<div>自宅周辺の道は相手に表示されません。設定はマップ画面で変えられます。</div></div>`:''}
+  <button class="btn primary" data-act="inv-copy">招待状のテキストをコピー</button>
+  <div class="note">${ic('info',16)}<div>受け取った人が実際に走って共有すると、あなたに通知が届く想定です。実走の共有と通知は受け取った本人が選びます。</div></div>`:''}`
+  :`<p class="lead">まだ走行記録がありません。記録すると招待状をつくれます。</p>`}`;
+}
+function panelLog(){
+  const bikes=['all',...new Set(S.rides.map(r=>r.bike))];
+  const rides=[...S.rides].filter(r=>U.bikeFilter==='all'||r.bike===U.bikeFilter).sort((a,b)=>b.date.localeCompare(a.date));
+  return `
+  <h2>履歴と<u>冒険アルバム</u></h2>
+  <div class="chips" role="group" aria-label="愛車で絞り込む">${bikes.map(b=>`<button data-bike="${esc(b)}" aria-pressed="${U.bikeFilter===b}">${b==='all'?'すべて':esc(b)}</button>`).join('')}</div>
+  ${rides.length?rides.map(r=>{ const firsts=edgesOf(r.path).filter(x=>!traveled(r.id).has(x)).length; return `
+    <button class="ride" data-ride="${r.id}" ${U.logRide===r.id?'style="border-color:var(--orange)"':''}>
+      <span class="thumb"><img src="${photoOf(r.spots[0]||{node:r.path[1]||'A'})}" alt=""></span>
+      <span class="info"><b>${esc(r.title||'無題の走行')} ${r.sample?'<span class="chip sample">サンプル</span>':''}</b>
+      <small>${r.date} · ${esc(r.bike)} · ${kmOf(r.path)}km</small><small>初めての道 ${firsts}本 · 写真 ${r.spots.length}枚</small></span>
+    </button>`}).join(''):`<p class="lead">まだ記録がありません。「記録」タブから走行を記録してください。</p>`}`;
+}
+
+/* ---------- シート（保存・アルバム） ---------- */
+function openSheet(html){ closeSheet(); const bg=document.createElement('div'); bg.className='sheet-bg'; bg.id='sheet';
+  bg.innerHTML=`<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>${html}</div>`;
+  bg.addEventListener('click',e=>{ if(e.target===bg) closeSheet(); }); document.getElementById('app').appendChild(bg); bg.querySelector('button,input,select,textarea')?.focus(); }
+function closeSheet(){ document.getElementById('sheet')?.remove(); }
+function saveSheet(){
+  const r=U.rec, today=new Date(), iso=new Date(today.getTime()-today.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+  const tv=traveled(), news=edgesOf(r.path).filter(x=>!tv.has(x));
+  openSheet(`<h2>走行を保存</h2>
+  <p class="lead">${kmOf(r.path)}km・約${fmtMin(r.clock)}。初めての道が<b>${new Set(news).size}本</b>あります。</p>
+  <div class="grid2"><div class="field"><label for="s-date">走行日</label><input type="date" id="s-date" value="${iso}"></div>
+  <div class="field"><label for="s-bike">愛車</label><select id="s-bike">${S.bikes.map(b=>`<option>${esc(b)}</option>`).join('')}<option value="__new">＋ 愛車を追加</option></select></div></div>
+  <div class="field" id="newbike-f" hidden><label for="s-newbike">追加する愛車の名前</label><input id="s-newbike" maxlength="20" placeholder="例：Rebel 250"></div>
+  <div class="field"><label for="s-title">タイトル</label><input id="s-title" maxlength="30" value="${esc(N[r.path.reduce((a,n)=>N[n][3]!=='town'?n:a,'A')][2])}へ"></div>
+  ${r.spots.length?`<h3>立ち寄りスポットと写真</h3>`+r.spots.map((s,i)=>`<div class="spotedit"><img id="sp-img-${i}" src="${photoOf(s)}" alt="">
+    <div class="field"><label for="sp-t-${i}">${N[s.node][2]}</label><input id="sp-t-${i}" maxlength="24" value="${esc(N[s.node][2])}">
+    <span class="btn small filebtn">${ic('photo',14)} 写真を選ぶ<input type="file" accept="image/*" data-spfile="${i}" aria-label="${N[s.node][2]}の写真を選ぶ"></span></div></div>`).join('')
+    :`<div class="note">${ic('info',16)}<div>立ち寄りを登録すると、写真を地図にピンとして残せます。</div></div>`}
+  <div class="field"><label for="s-com">メモ</label><textarea id="s-com" maxlength="120" placeholder="路面や景色、駐輪場所のことなど"></textarea></div>
+  <div class="row"><button class="btn primary" data-act="save-ride">マイ地図に保存</button><button class="btn" data-act="close">戻る</button></div>`);
+}
+function albumSheet(id){
+  const r=S.rides.find(x=>x.id===id); if(!r) return; const firsts=edgesOf(r.path).filter(x=>!traveled(r.id).has(x));
+  const hero=photoOf(r.spots[0]||{node:r.path[1]||'A'});
+  openSheet(`<div class="album-hero"><img src="${hero}" alt=""><div><b>${esc(r.title||'無題の走行')}</b>${r.date} · ${esc(r.bike)}${r.sample?' · サンプル':''}</div></div>
+  <div class="stats"><div class="stat"><small>走行距離</small><b>${kmOf(r.path)}<span>km</span></b></div><div class="stat"><small>初めての道</small><b>${new Set(firsts).size}<span>本</span></b></div><div class="stat"><small>立ち寄り</small><b>${r.spots.length}<span>か所</span></b></div></div>
+  ${r.spots.length?`<div class="timeline">${[...r.spots].sort((a,b)=>(a.time||'').localeCompare(b.time||'')).map(s=>`<div class="ev"><img src="${photoOf(s)}" alt=""><div><small>${s.time||''}</small><b>${esc(s.title||N[s.node][2])}</b><small>${N[s.node][2]}</small></div></div>`).join('')}</div>`:''}
+  ${r.comment?`<p class="lead">${esc(r.comment)}</p>`:''}
+  <div class="row"><button class="btn brand" data-act="replay-ride" data-id="${r.id}">${ic('play',14)} 白地図でリプレイ</button><button class="btn" data-act="invite-ride" data-id="${r.id}">${ic('mail',16)} 招待状にする</button></div>
+  <div class="row">${U.confirm==='del-'+r.id?`<button class="btn small danger" data-act="del-yes" data-id="${r.id}">この記録を削除する</button><button class="btn small" data-act="del-no" data-id="${r.id}">やめる</button>`:`<button class="btn small danger" data-act="del" data-id="${r.id}">記録を削除</button>`}<button class="btn small" data-act="close">閉じる</button></div>`);
+}
+
+/* ---------- リプレイ ---------- */
+let replayTimers=[];
+function runReplay(list,captions){
+  replayTimers.forEach(clearTimeout); replayTimers=[];
+  const gap=reduce?0:1.9; U.replay=list.map((r,i)=>({path:r.path,spots:r.spots,delay:i*gap})); U.replay.caption=captions[0];
+  U.tab='map'; render();
+  if(reduce){ U.replay=null; render(); return; }
+  list.forEach((r,i)=>replayTimers.push(setTimeout(()=>{ const c=document.getElementById('replaycap'); if(c) c.textContent=captions[i+1]||''; }, i*gap*1000+200)));
+  replayTimers.push(setTimeout(()=>{ U.replay=null; render(); }, (list.length*gap+1.6)*1000));
+}
+
+/* ---------- 全体描画・操作 ---------- */
+const TABS=[['map','マップ','map'],['rec','記録','rec'],['plan','提案','plan'],['invite','招待状','mail'],['log','履歴','log']];
+function render(){
+  document.getElementById('m-navi').setAttribute('aria-pressed',U.mode==='navi');
+  document.getElementById('m-white').setAttribute('aria-pressed',U.mode==='white');
+  document.getElementById('tabs').innerHTML=TABS.map(([id,t,i])=>`<button data-go="${id}" ${U.tab===id?'aria-current="page"':''}>${ic(i,22)}${t}</button>`).join('');
+  const p=document.getElementById('panel'), keep=p.dataset.tab===U.tab?p.scrollTop:0;
+  p.innerHTML=({map:panelMap,rec:panelRec,plan:panelPlan,invite:panelInvite,log:panelLog})[U.tab]();
+  p.dataset.tab=U.tab; p.scrollTop=keep;
+  renderMap();
+}
+let toastT; function toast(msg){ document.querySelector('.toast')?.remove(); const t=document.createElement('div'); t.className='toast'; t.setAttribute('role','status'); t.textContent=msg; document.getElementById('app').appendChild(t); clearTimeout(toastT); toastT=setTimeout(()=>t.remove(),3200); }
+
+document.getElementById('m-navi').onclick=()=>{U.mode='navi';render();};
+document.getElementById('m-white').onclick=()=>{U.mode='white';render();};
+
+document.getElementById('app').addEventListener('click', async ev=>{
+  const t=ev.target.closest('button'); if(!t) return;
+  if(t.dataset.go){ if(U.rec && t.dataset.go!=='rec'){ toast('記録中です。先に走行を終えるか、記録をやめてください'); return; } U.tab=t.dataset.go; U.confirm=null; render(); return; }
+  if(t.dataset.step){ step(t.dataset.step); return; }
+  if(t.dataset.cand){ U.selCand=+t.dataset.cand; render(); return; }
+  if(t.dataset.bike){ U.bikeFilter=t.dataset.bike; U.logRide=null; render(); return; }
+  if(t.dataset.ride){ U.logRide=t.dataset.ride; U.confirm=null; render(); albumSheet(t.dataset.ride); return; }
+  if(t.dataset.invride){ U.invRide=t.dataset.invride; render(); return; }
+  const a=t.dataset.act, id=t.dataset.id;
+  switch(a){
+    case 'grow': { const rs=ridesSorted(); runReplay(rs,['初めての起動',...rs.map(r=>`${r.date} ${r.title||''}`)]); break; }
+    case 'reset': U.confirm='reset'; render(); break;
+    case 'cancel': U.confirm=null; render(); break;
+    case 'reset-yes': S.rides=S.rides.filter(r=>!r.sample); U.confirm=null; U.logRide=null; U.invRide=null; U.cands=[]; save(); render(); toast('白紙の地図になりました。記録タブから最初の道を走りましょう'); break;
+    case 'sample': S.rides.push(...JSON.parse(JSON.stringify(SAMPLE)).filter(s=>!S.rides.some(r=>r.id===s.id))); save(); render(); break;
+    case 'start': startRec(null); break;
+    case 'start-plan': startRec(U.plan.path); break;
+    case 'auto': U.rec.auto=true; render(); autoStep(); break;
+    case 'undo': if(U.rec.path.length>1){ const b=U.rec.path.pop(); U.rec.clock-=mins(EK[k(b,U.rec.path.at(-1))]); U.rec.spots=U.rec.spots.filter(s=>U.rec.path.includes(s.node)); render(); } break;
+    case 'spot': { const n=U.rec.path.at(-1), d=new Date(U.rec.start.getTime()+U.rec.clock*6e4); U.rec.spots.push({node:n,kind:kindFor(n),time:d.toTimeString().slice(0,5)}); render(); toast(`${N[n][2]}を立ち寄りに登録しました`); break; }
+    case 'discard': U.rec=null; render(); break;
+    case 'finish': saveSheet(); break;
+    case 'close': U.confirm=null; closeSheet(); break;
+    case 'save-ride': {
+      const r=U.rec, sel=document.getElementById('s-bike').value; let bike=sel;
+      if(sel==='__new'){ bike=document.getElementById('s-newbike').value.trim(); if(!bike){ document.getElementById('s-newbike').focus(); toast('追加する愛車の名前を入力してください'); return; } if(!S.bikes.includes(bike)) S.bikes.push(bike); }
+      const tvb=traveled(), news=new Set(edgesOf(r.path).filter(x=>!tvb.has(x))).size;
+      const ride={id:'r'+Date.now(),date:document.getElementById('s-date').value||'2026-11-04',bike,title:document.getElementById('s-title').value.trim(),comment:document.getElementById('s-com').value.trim(),path:r.path,
+        spots:r.spots.map((s,i)=>({...s,title:document.getElementById('sp-t-'+i).value.trim()}))};
+      S.rides.push(ride); U.rec=null; U.plan=null; U.cands=[]; save(); closeSheet();
+      runReplay([ride],[`${ride.date} の走行を描いています`]);
+      toast(news?`マイ地図に初めての道が${news}本加わりました`:'記録を保存しました'); break; }
+    case 'suggest': suggest(); U.plan = U.cands.length?null:false; render(); break;
+    case 'use-plan': U.plan=U.cands[U.selCand]; U.tab='rec'; render(); break;
+    case 'inv-save': S.wish=[...new Set([...S.wish,...edgesOf(INVITE.path)])]; S.inviteSaved=true; save(); render(); toast('「行きたい道」として地図に保存しました'); break;
+    case 'inv-plan': U.form.mood='sea'; U.form.time='4'; U.tab='plan'; suggest(); render(); break;
+    case 'inv-copy': { const r=S.rides.find(x=>x.id===U.invRide); const txt=`【道の招待状】${r.title||'走った道'}（${kmOf(r.path)}km）\n${U.invMsg}\n${r.spots.length?'立ち寄り：'+r.spots.map(s=>s.title||N[s.node][2]).join('、')+'\n':''}— ミチノートより`;
+      try{ await navigator.clipboard.writeText(txt); toast('招待状のテキストをコピーしました'); }catch(e){ const p=document.getElementById('inv-preview'); const rg=document.createRange(); rg.selectNodeContents(p); getSelection().removeAllRanges(); getSelection().addRange(rg); toast('コピーできなかったので、ひとことを選択しました'); } break; }
+    case 'replay-ride': { closeSheet(); const r=S.rides.find(x=>x.id===id); runReplay([r],[`${r.date} ${r.title||''}`]); break; }
+    case 'invite-ride': closeSheet(); U.invRide=id; U.tab='invite'; render(); break;
+    case 'del': U.confirm='del-'+id; albumSheet(id); break;
+    case 'del-no': U.confirm=null; albumSheet(id); break;
+    case 'del-yes': S.rides=S.rides.filter(r=>r.id!==id); U.confirm=null; U.logRide=null; if(U.invRide===id) U.invRide=null; save(); closeSheet(); render(); toast('記録を削除しました'); break;
+  }
+});
+document.getElementById('app').addEventListener('change', async ev=>{
+  const t=ev.target;
+  if(t.dataset.f){ U.form[t.dataset.f]=t.value; return; }
+  if(t.id==='hidehome'){ S.hideHome=t.checked; save(); renderMap(); return; }
+  if(t.id==='s-bike'){ document.getElementById('newbike-f').hidden = t.value!=='__new'; return; }
+  if(t.dataset.spfile){ const f=t.files[0]; if(!f) return; try{ const url=await readPhoto(f); const i=+t.dataset.spfile; U.rec.spots[i].photo=url; document.getElementById('sp-img-'+i).src=url; }catch(e){ toast('この写真は読み込めませんでした。JPEGかPNGを選んでください'); } }
+});
+document.getElementById('app').addEventListener('input', ev=>{ if(ev.target.id==='inv-msg'){ U.invMsg=ev.target.value; const p=document.getElementById('inv-preview'); if(p) p.textContent=U.invMsg; } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSheet(); });
+
+render();
+})();
+</script>
+</body>
+</html>
