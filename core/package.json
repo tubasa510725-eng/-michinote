@@ -1,0 +1,21 @@
+{
+  "name": "@michinote/core",
+  "version": "0.1.0",
+  "description": "ミチノートの中核ロジック（白地図・走行記録・ルート提案・道の招待状）。UI と地図ライブラリに依存しない。",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "src"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.6.3",
+    "vitest": "2.1.8"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

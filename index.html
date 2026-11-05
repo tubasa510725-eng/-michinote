@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#214c34" />
+  <meta name="description" content="バイクで走った道を地図と旅の記録に残す、ミチノートの試験版。" />
+  <title>ミチノート｜走った道が、地図になる。</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="assets/icon-192.png" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="outer">
+    <aside class="aside">
+      <div class="aside-mark"><span class="mark-dot">◉</span> ミチノート <small>EARLY ACCESS</small></div>
+      <h1>走った道が、<br /><em>自分だけの地図</em>になる。</h1>
+      <p>旅の途中で出会った景色を、道と一緒に少しずつ残す。バイク旅のためのプライベート地図。</p>
+      <div class="aside-note"><span class="tag">開発初版 v0.2</span><p>GPS記録・履歴・写真・行きたい場所の保存を、まずは自分のスマホで試せます。</p><a href="demo/index.html" target="_blank" rel="noopener">元のデザイン試作品を見る ↗</a></div>
+      <small class="aside-copy">この初版は自分専用。共有サーバーへのアップロードは行いません。</small>
+    </aside>
+    <main class="app" id="app">
+      <header class="topbar">
+        <div class="brand" role="banner"><span class="brand-icon" aria-hidden="true">◉</span><span>ミチノート <small>旅の記録</small></span></div>
+        <div class="top-actions"><span class="local-pill"><span class="local-dot"></span>端末に保存</span><button id="helpButton" class="icon-btn" aria-label="使い方と注意事項" title="使い方">?</button></div>
+      </header>
+      <section class="map-shell" id="map-shell" aria-label="走行マップ">
+        <div id="map" aria-label="現在地と走行ルートの地図"></div>
+        <div class="map-fallback" id="mapFallback" hidden><div class="fallback-decoration">◉</div><h2>地図を読み込めませんでした</h2><p>インターネットにつないで再読み込みしてください。保存済みの履歴は引き続き見られます。</p></div>
+        <div class="map-tools"><div class="switcher" role="group" aria-label="地図の表示"><button data-mode="white" id="whiteMode" aria-pressed="true">淡色</button><button data-mode="street" id="streetMode" aria-pressed="false">道路</button></div><button class="locate" data-action="locate" title="現在地を表示" aria-label="現在地を表示">⌾</button></div>
+        <div class="map-legend"><span><i class="legend-line green"></i>走った道</span><span><i class="legend-line red"></i>記録中</span><span><i class="legend-dot"></i>行きたい場所</span></div>
+      </section>
+      <section class="workspace" id="workspace" aria-live="polite"><div id="panel"></div></section>
+      <nav class="tabs" id="tabs" aria-label="アプリのメニュー">
+        <button data-tab="map" class="active"><span class="tab-icon">▱</span><span>マップ</span></button>
+        <button data-tab="record"><span class="tab-icon">●</span><span>記録</span></button>
+        <button data-tab="plan"><span class="tab-icon">♧</span><span>提案</span></button>
+        <button data-tab="invite"><span class="tab-icon">✉</span><span>招待状</span></button>
+        <button data-tab="history"><span class="tab-icon">▤</span><span>履歴</span></button>
+      </nav>
+      <div class="toast" role="status" id="toast" hidden></div>
+      <dialog id="dialog" aria-labelledby="modalTitle"><div id="modalContent"></div></dialog>
+    </main>
+  </div>
+</body>
+</html>
